@@ -1,0 +1,73 @@
+getwd()
+setwd("C:\\Users\\MYPC\\Desktop\\acadgild")
+data<-read.csv("cars_retail.csv")
+data
+str(data)
+#Create dummy variables for Make variable
+class (data$Make)
+Make_factor <- model.matrix(~data$Make )
+head(Make_factor)
+
+#Variable with k levels require only k-1 dummy variables
+Make_factor <- data.frame(Make_factor)#Converting from matrix to data.frame
+Make_factor
+factor_length <- length(names(Make_factor))-1
+data <- cbind (data,Make_factor[1:factor_length] )
+head (data)
+##dummy variable for type
+class (data$Type)
+Type_factor <- model.matrix(~data$Type -1)
+head(Type_factor)
+
+#Variable with k levels require only k-1 dummy variables
+Type_factor <- data.frame(Type_factor)#Converting from matrix to data.frame
+factor_length1 <- length(names(Type_factor))-1
+data<- cbind (data,Type_factor[1:factor_length1] )
+head (data)
+
+## Variable tranformation
+data$Cruise <- as.factor (data$Cruise)
+data$Sound <- as.factor (data$Sound)
+data$Leather <- as.factor (data$Leather)
+
+#Variable with k levels require only k-1 dummy variables
+Make_factor <- data.frame(Make_factor)#Converting from matrix to data.frame
+Make_factor
+factor_length <- length(names(Make_factor))-1
+cars_retail_new <- cbind (cars_retail_new,Make_factor[1:factor_length] )
+head (cars_retail_new)
+
+
+## Checking Multicollinearity
+
+library(corrplot)
+correlation<-cor(data)
+correlation
+corrplot(correlation,type = "lower")
+
+## there is a muliticolliniarity between the variable. Dummping those variable and then creating a model.
+
+model<-lm (Price~Mileage+Liter+Doors+
+             data.MakeCadillac+
+            data.MakeSAAB+data.TypeConvertible+
+             data.TypeCoupe+data.TypeHatchback+
+             data.TypeSedan,
+           data=data)
+summary(model)
+
+#Take the log of Price and generate the regression equation
+model2<- lm (log(Price)~Mileage+Liter+Doors+
+                     data.MakeCadillac+
+                     data.MakeSAAB+data.TypeConvertible+
+                     data.TypeHatchback+
+                     data.TypeSedan,
+                   data=data)
+summary(model2)
+##all are significant with high R asnd adjusted Rsquared value
+
+##predict the Model
+model2_pr<-predict(model2)
+model2_pr
+plot (data$Price, col="green",type="l")
+par (new=TRUE)
+plot (model2_pr,col="red",type="l")
